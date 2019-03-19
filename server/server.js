@@ -34,12 +34,36 @@ pool.on("error", error => {
 
 app.get("/songs", (req, res) => {
   //get songs from the DB
-  pool.query('SELECT * FROM "songs" ORDER BY "track";')
-  .then((result) => {
+  pool
+    .query('SELECT * FROM "songs" ORDER BY "track";')
+    .then(result => {
       res.send(result.rows);
-  })
-  .catch((error) => {
-      console.log('ERRROR getting all songs', error);
-      res.sendStatus(500);     
-  })
+    })
+    .catch(error => {
+      console.log("ERRROR getting all songs", error);
+      res.sendStatus(500);
+    });
+});
+
+//add a song to db
+//expect a song obj on req body
+//properties for track, artist, rank, published
+app.post("/songs", (req, res) => {
+  let song = req.body;
+  // let artist = req.body.artist;
+  // let rank = req.body.rank;
+  // let published = req.body.published;
+  let sqlText = `INSERT INTO "songs" ("rank", "track", "artist", "published") VALUES ($1,$2,$3,$4);`;
+  //sql injection can be done here if you DONT do this 
+  pool
+    .query(sqlText, [song.rank, song.track, song.artist, song.published])
+
+    .then(response => {
+      res.sendStatus(201);
+    })
+    .catch(error => {
+      console.log("Failed to insert new song, heres the song", song);
+      console.log(error);
+      res.sendStatus(500);
+    });
 });
